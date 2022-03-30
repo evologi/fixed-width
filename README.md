@@ -1,5 +1,8 @@
 # fixed-width
 
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![ci](https://github.com/evologi/fixed-width/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/evologi/fixed-width/actions/workflows/ci.yaml)
+
 A fixed-width file format toolset with streaming support and flexible options.
 
 ## Features
