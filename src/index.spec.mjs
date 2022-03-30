@@ -1,8 +1,10 @@
 import test from 'ava'
-import { Readable, Writable } from 'stream'
-import { pipeline } from 'stream/promises'
+import { Readable, Writable, pipeline } from 'stream'
+import { promisify } from 'util'
 
 import { Parser, Stringifier, parse, stringify } from './index.mjs'
+
+const pump = promisify(pipeline)
 
 test('Parser', t => {
   const parser = new Parser({
@@ -145,7 +147,7 @@ test('stringify', t => {
 test('parse stream', async t => {
   const items = []
 
-  await pipeline(
+  await pump(
     Readable.from([
       Buffer.from(' qwe  rty '),
       Buffer.from('\n'),
@@ -176,7 +178,7 @@ test('parse stream', async t => {
 test('stringify stream', async t => {
   let text = ''
 
-  await pipeline(
+  await pump(
     Readable.from([
       { a: 42, b: true },
       { a: 'test', b: { valueOf: () => 'yeppa' } }
