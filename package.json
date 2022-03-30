@@ -34,6 +34,10 @@
   ],
   "author": "Evologi S.r.l. <support@evologi.it> (https://www.evologi.it/)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evologi/fixed-width.git"
+  },
   "devDependencies": {
     "ava": "^4.1.0",
     "c8": "^7.11.0",
