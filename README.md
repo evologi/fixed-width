@@ -15,6 +15,12 @@ A fixed-width file format toolset with streaming support and flexible options.
 - **Native ESM support**: future proof
 - **TypeScript support**
 
+## Install
+
+```
+npm i @evologi/fixed-width
+```
+
 ## Examples
 
 ### Parse
