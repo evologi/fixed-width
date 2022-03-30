@@ -69,6 +69,10 @@ export interface Field {
    */
   column?: number;
   /**
+   * Field-level padding value. Must be one char (byte).
+   */
+  pad?: string;
+  /**
    * Name (or symbol) of matching property for this field.
    *
    * When parsing, this is the name of the property where the value will be saved. When serializing, this is the property name to read.
@@ -82,7 +86,7 @@ export interface Field {
   width: number;
 }
 
-export class Parser<T = unknown> {
+export declare class Parser<T = unknown> {
   /**
    * Get a [Transform](https://nodejs.org/api/stream.html#class-streamtransform) stream (Node.js).
    */
@@ -95,7 +99,7 @@ export class Parser<T = unknown> {
   write(input: string | Buffer): Iterable<T>;
 }
 
-export class Stringifier {
+export declare class Stringifier {
   /**
    * Get a [Transform](https://nodejs.org/api/stream.html#class-streamtransform) stream (Node.js).
    */

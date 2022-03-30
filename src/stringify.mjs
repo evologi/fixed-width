@@ -91,9 +91,9 @@ export function stringifyField (values, field, options, line) {
   }
 
   if (field.align === 'right') {
-    value = value.padStart(field.width, options.pad)
+    value = value.padStart(field.width, field.pad)
   } else {
-    value = value.padEnd(field.width, options.pad)
+    value = value.padEnd(field.width, field.pad)
   }
 
   return value

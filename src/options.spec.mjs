@@ -17,12 +17,14 @@ test('defaults', t => {
       {
         align: 'left',
         column: 1,
+        pad: ' ',
         property: 0,
         width: 2
       },
       {
         align: 'left',
         column: 3,
+        pad: ' ',
         property: 1,
         width: 2
       }

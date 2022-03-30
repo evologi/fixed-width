@@ -57,3 +57,25 @@ test('field value overflow', t => {
     { code: 'FIELD_VALUE_OVERFLOW' }
   )
 })
+
+test('field level padding', t => {
+  const options = parseOptions([
+    {
+      align: 'left',
+      pad: '-',
+      width: 6
+    },
+    {
+      align: 'right',
+      pad: '0',
+      width: 4
+    }
+  ])
+
+  const buffer = stringifyFields(
+    ['test', 42],
+    options
+  )
+
+  t.is(buffer.toString(), 'test--0042')
+})

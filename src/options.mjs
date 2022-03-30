@@ -38,7 +38,7 @@ export function parseOptions (options) {
     throw new Error('Ending line (to) must be greater or equal to the starting line (from)')
   }
 
-  const fields = parseFields(options.fields)
+  const fields = parseFields(options.fields, pad, encoding)
   const width = getWidth(fields)
 
   const properties = fields.reduce(
@@ -66,21 +66,21 @@ export function parseOptions (options) {
   }
 }
 
-function parseFields (items) {
+function parseFields (items, pad, encoding) {
   if (!Array.isArray(items)) {
     throw new TypeError('Fields option must be an array')
   }
   const fields = []
   let column = 1
   for (let i = 0; i < items.length; i++) {
-    const field = parseField(items[i], i, column)
+    const field = parseField(items[i], i, column, pad, encoding)
     fields.push(field)
     column += field.width
   }
   return fields
 }
 
-function parseField (field, index, defaultColumn) {
+function parseField (field, index, defaultColumn, defaultPad, encoding) {
   if (typeof field !== 'object' || field === null) {
     throw new TypeError('Field definition must be an object')
   }
@@ -93,9 +93,18 @@ function parseField (field, index, defaultColumn) {
     throw new TypeError('Field column must be a positive integer')
   }
 
+  const pad = field.pad || defaultPad
+  if (typeof pad !== 'string') {
+    throw new TypeError('Padding value (pad) must be a string')
+  }
+  if (getByteLength(pad, encoding) !== 1) {
+    throw new Error('Padding value (pad) must be a single char (one byte)')
+  }
+
   return {
     align: field.align === 'right' ? 'right' : 'left',
     column,
+    pad,
     property: isPropertyKey(field.property) ? field.property : index,
     width: field.width
   }
