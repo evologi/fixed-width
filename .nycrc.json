@@ -1,0 +1,14 @@
+{
+  "all": true,
+  "check-coverage": true,
+  "reporter": ["html", "lcov", "text"],
+  "extension": [
+    ".mjs"
+  ],
+  "include": [
+    "src/**/*.mjs"
+  ],
+  "exclude": [
+    "**/*.spec.mjs"
+  ]
+}

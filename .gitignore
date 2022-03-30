@@ -1,0 +1,9 @@
+.*
+!.github
+!.gitignore
+!.nycrc.json
+coverage
+fixed-width.cjs
+fixed-width.mjs
+node_modules
+package-lock.json
