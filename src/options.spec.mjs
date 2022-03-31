@@ -16,6 +16,7 @@ test('defaults', t => {
     fields: [
       {
         align: 'left',
+        cast: null,
         column: 1,
         pad: ' ',
         property: 0,
@@ -23,6 +24,7 @@ test('defaults', t => {
       },
       {
         align: 'left',
+        cast: null,
         column: 3,
         pad: ' ',
         property: 1,

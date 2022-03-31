@@ -80,3 +80,35 @@ test('unexpected line length', t => {
     { code: 'UNEXPECTED_LINE_LENGTH' }
   )
 })
+
+test('parse and cast', t => {
+  t.plan(3)
+
+  const buffer = Buffer.from('--0420')
+
+  const options = parseOptions({
+    fields: [
+      {
+        width: 2
+      },
+      {
+        pad: '0',
+        cast: (value, context) => {
+          t.is(value, '42')
+          t.deepEqual(context, {
+            column: 3,
+            line: 1,
+            width: 4
+          })
+          return parseInt(value)
+        },
+        width: 4
+      }
+    ]
+  })
+
+  t.deepEqual(
+    parseFields(buffer, options),
+    ['--', 42]
+  )
+})

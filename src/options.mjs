@@ -103,6 +103,7 @@ function parseField (field, index, defaultColumn, defaultPad, encoding) {
 
   return {
     align: field.align === 'right' ? 'right' : 'left',
+    cast: typeof field.cast === 'function' ? field.cast : null,
     column,
     pad,
     property: isPropertyKey(field.property) ? field.property : index,

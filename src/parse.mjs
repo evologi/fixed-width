@@ -121,8 +121,15 @@ export function parseField (buffer, field, options, line) {
     field.pad,
     options.trim
   )
+  if (!field.cast) {
+    return value
+  }
 
-  return value
+  return field.cast(value, {
+    column: field.column,
+    line,
+    width: field.width
+  })
 }
 
 function set (obj, key, value) {

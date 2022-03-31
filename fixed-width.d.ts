@@ -65,6 +65,13 @@ export interface Field {
    */
   align?: "left" | "right";
   /**
+   * Custom casting applied while parsing.
+   */
+  cast?: (
+    value: string,
+    context: { column: number; line: number; width: number }
+  ) => any;
+  /**
    * Field's column number. This is 1-based. First column is 1.
    */
   column?: number;
