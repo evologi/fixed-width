@@ -150,19 +150,6 @@ function isPropertyKey (value) {
   return typeof value === 'string' || typeof value === 'symbol'
 }
 
-export function trim (value, mode) {
-  switch (mode) {
-    case false:
-      return value
-    case 'left':
-      return value.trimStart()
-    case 'right':
-      return value.trimEnd()
-    default:
-      return value.trim()
-  }
-}
-
 function getByteLength (value, encoding) {
   return Buffer.byteLength(value, encoding)
 }

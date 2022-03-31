@@ -1,7 +1,8 @@
 import { Transform } from 'stream'
 
 import { FixedWidthError } from './error.mjs'
-import { parseOptions, trim } from './options.mjs'
+import { parseOptions } from './options.mjs'
+import { trimString } from './util.mjs'
 
 export class Parser {
   static stream (options) {
@@ -113,11 +114,15 @@ export function parseFields (buffer, options, line = 1) {
 export function parseField (buffer, field, options, line) {
   const index = field.column - 1
 
-  const value = buffer
-    .subarray(index, index + field.width)
-    .toString(options.encoding)
+  const value = trimString(
+    buffer
+      .subarray(index, index + field.width)
+      .toString(options.encoding),
+    field.pad,
+    options.trim
+  )
 
-  return trim(value, options.trim)
+  return value
 }
 
 function set (obj, key, value) {

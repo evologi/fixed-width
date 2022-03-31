@@ -1,7 +1,8 @@
 import { Transform } from 'stream'
 
 import { FixedWidthError } from './error.mjs'
-import { parseOptions, trim } from './options.mjs'
+import { parseOptions } from './options.mjs'
+import { trimString } from './util.mjs'
 
 export class Stringifier {
   static stream (options) {
@@ -81,7 +82,7 @@ export function stringifyField (values, field, options, line) {
     )
   }
 
-  value = trim(value, options.trim)
+  value = trimString(value, field.pad, options.trim)
   if (value.length > field.width) {
     throw new FixedWidthError(
       'FIELD_VALUE_OVERFLOW',
