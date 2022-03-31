@@ -180,7 +180,7 @@ test('stringify stream', async t => {
 
   await pump(
     Readable.from([
-      { a: 42, b: true },
+      { a: true, b: 42 },
       { a: 'test', b: { valueOf: () => 'yeppa' } }
     ]),
     Stringifier.stream({
@@ -188,7 +188,7 @@ test('stringify stream', async t => {
       eof: false,
       fields: [
         { align: 'left', property: 'a', width: 5 },
-        { align: 'right', property: 'b', width: 5 }
+        { align: 'right', pad: '0', property: 'b', width: 5 }
       ]
     }),
     new Writable({
@@ -200,5 +200,5 @@ test('stringify stream', async t => {
     })
   )
 
-  t.is(text, '42       1\ntest yeppa')
+  t.is(text, '1    00042\ntest yeppa')
 })
