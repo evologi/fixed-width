@@ -1,6 +1,6 @@
 # fixed-width
 
-![npm](https://img.shields.io/npm/v/@evologi/fixed-width)
+[![npm](https://img.shields.io/npm/v/@evologi/fixed-width)](https://www.npmjs.com/package/@evologi/fixed-width)
 ![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/npm/@evologi/fixed-width)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![ci](https://github.com/evologi/fixed-width/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/evologi/fixed-width/actions/workflows/ci.yaml)
