@@ -12,12 +12,18 @@ export class Stringifier {
       readableObjectMode: false,
       writableObjectMode: true,
       transform (chunk, encoding, callback) {
-        this.push(stringifier.write([chunk]))
-        callback()
+        try {
+          callback(null, stringifier.write([chunk]))
+        } catch (err) {
+          callback(err)
+        }
       },
       flush (callback) {
-        this.push(stringifier.end())
-        callback()
+        try {
+          callback(null, stringifier.end())
+        } catch (err) {
+          callback(err)
+        }
       }
     })
   }

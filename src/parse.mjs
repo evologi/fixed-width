@@ -14,16 +14,24 @@ export class Parser {
       readableObjectMode: true,
       writableObjectMode: false,
       transform (chunk, encoding, callback) {
-        for (const data of parser.write(chunk)) {
-          this.push(data)
+        try {
+          for (const data of parser.write(chunk)) {
+            this.push(data)
+          }
+          callback()
+        } catch (err) {
+          callback(err)
         }
-        callback()
       },
       flush (callback) {
-        for (const data of parser.end()) {
-          this.push(data)
+        try {
+          for (const data of parser.end()) {
+            this.push(data)
+          }
+          callback()
+        } catch (err) {
+          callback(err)
         }
-        callback()
       }
     })
   }
