@@ -157,8 +157,8 @@ function set (obj, key, value) {
   return obj
 }
 
-const lf = 0x0a; // \n byte, Line Feed
-const cr = 0x0d; // \r byte, Carriage Return
+const lf = 0x0a // \n byte, Line Feed
+const cr = 0x0d // \r byte, Carriage Return
 
 export function guessEndOfLine (buffer) {
   for (let i = 0; i < buffer.byteLength; i++) {
