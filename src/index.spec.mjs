@@ -91,9 +91,8 @@ test('Stringifier', t => {
 test('parse', t => {
   t.deepEqual(
     parse(
-      'helloworld\nworldhello\nohno!',
+      'helloworld\r\nworldhello\r\nohno!',
       {
-        eol: '\n',
         relax: true,
         fields: [
           {

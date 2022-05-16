@@ -1,5 +1,3 @@
-import os from 'os'
-
 export function parseOptions (options) {
   if (Array.isArray(options)) {
     options = { fields: options }
@@ -20,7 +18,7 @@ export function parseOptions (options) {
     throw new Error('Padding value (pad) must be a single char (one byte)')
   }
 
-  const eol = options.eol || os.EOL
+  const eol = options.eol || ''
   if (typeof eol !== 'string') {
     throw new TypeError('End of line (eol) value must be a string')
   }

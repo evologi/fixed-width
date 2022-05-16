@@ -1,3 +1,4 @@
+import os from 'os'
 import { Transform } from 'stream'
 
 import { FixedWidthError } from './error.mjs'
@@ -31,12 +32,15 @@ export class Stringifier {
   constructor (options) {
     this.line = 1
     this.options = parseOptions(options)
+    if (!this.options.eol.byteLength) {
+      this.options.eol = Buffer.from(os.EOL)
+    }
   }
 
   end () {
     this.line = 1
     if (this.options.eof) {
-      return Buffer.from(this.options.eol)
+      return this.options.eol
     } else {
       return Buffer.alloc(0)
     }

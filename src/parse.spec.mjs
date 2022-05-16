@@ -2,6 +2,7 @@ import test from 'ava'
 
 import { parseOptions } from './options.mjs'
 import {
+  guessEndOfLine,
   isMatching,
   parse,
   parseField,
@@ -140,4 +141,12 @@ test('trimString', t => {
   t.is(trimString('004200', '0', false), '004200')
   t.is(trimString('004200', '0', 'left'), '4200')
   t.is(trimString('004200', '0', 'right'), '0042')
+})
+
+test('guessEndOfLine', t => {
+  t.is(guessEndOfLine(Buffer.from('asdasd')), undefined)
+  t.is(guessEndOfLine(Buffer.from('asd\rasd')).toString(), '\r')
+  t.is(guessEndOfLine(Buffer.from('asd\r\nasd')).toString(), '\r\n')
+  t.is(guessEndOfLine(Buffer.from('asd\nasd')).toString(), '\n')
+  t.is(guessEndOfLine(Buffer.from('asd\n\rasd')).toString(), '\n')
 })

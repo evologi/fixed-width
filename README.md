@@ -328,9 +328,9 @@ The encoding used to handle strings and buffers. Only [Node.js encodings](https:
 
 Type: `<String>`
 
-Default: [`os.EOL`](https://nodejs.org/api/os.html#oseol)
-
-The **E**nd **O**f **L**ine character. This string is added at the end of all rows (lines) except the last one. It is also used while parsing.
+The **E**nd **O**f **L**ine character that divides record rows.
+It will defautl to [`os.EOL`](https://nodejs.org/api/os.html#oseol) for serialization.
+For parsing, the `Parser` will try to guess the correct line separator.
 
 ### `eof`
 

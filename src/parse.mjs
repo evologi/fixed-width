@@ -63,24 +63,33 @@ export class Parser {
         : Buffer.from(input, this.options.encoding)
     ])
 
-    let index = 0
+    if (!this.options.eol.byteLength) {
+      const eol = guessEndOfLine(buffer)
+      if (eol) {
+        this.options.eol = eol
+      }
+    }
 
-    while (index < buffer.byteLength) {
-      if (isMatching(buffer, this.options.eol, index)) {
-        const line = this.line++
+    if (this.options.eol.byteLength > 0) {
+      let index = 0
 
-        if (line >= this.options.from && line <= this.options.to) {
-          yield parseFields(
-            buffer.subarray(0, index),
-            this.options,
-            line
-          )
+      while (index < buffer.byteLength) {
+        if (isMatching(buffer, this.options.eol, index)) {
+          const line = this.line++
+
+          if (line >= this.options.from && line <= this.options.to) {
+            yield parseFields(
+              buffer.subarray(0, index),
+              this.options,
+              line
+            )
+          }
+
+          buffer = buffer.subarray(index + this.options.eol.byteLength)
+          index = 0
+        } else {
+          index++
         }
-
-        buffer = buffer.subarray(index + this.options.eol.byteLength)
-        index = 0
-      } else {
-        index++
       }
     }
 
@@ -142,6 +151,25 @@ export function parseField (buffer, field, options, line) {
 function set (obj, key, value) {
   obj[key] = value
   return obj
+}
+
+const lf = 0x0a; // \n byte, Line Feed
+const cr = 0x0d; // \r byte, Carriage Return
+
+export function guessEndOfLine (buffer) {
+  for (let i = 0; i < buffer.byteLength; i++) {
+    const char = buffer[i]
+
+    if (char === lf) {
+      return Buffer.from('\n')
+    } else if (char === cr) {
+      if (buffer[i + 1] === lf) {
+        return Buffer.from('\r\n')
+      } else {
+        return Buffer.from('\r')
+      }
+    }
+  }
 }
 
 export function isMatching (buffer, eol, offset = 0) {
