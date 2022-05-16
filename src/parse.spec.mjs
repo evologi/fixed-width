@@ -150,3 +150,19 @@ test('guessEndOfLine', t => {
   t.is(guessEndOfLine(Buffer.from('asd\nasd')).toString(), '\n')
   t.is(guessEndOfLine(Buffer.from('asd\n\rasd')).toString(), '\n')
 })
+
+test('partial width parsing', t => {
+  const text = 'qwerty\nasdfgh\n'
+
+  const items = parse(text, {
+    fields: [
+      { column: 2, width: 1 },
+      { column: 5, width: 1 }
+    ]
+  })
+
+  t.deepEqual(items, [
+    ['w', 't'],
+    ['s', 'g']
+  ])
+})

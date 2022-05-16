@@ -103,7 +103,11 @@ export function parse (input, options) {
 }
 
 export function parseFields (buffer, options, line = 1) {
-  if (buffer.byteLength !== options.width && !options.relax) {
+  if (line === 1 && buffer.byteLength > options.width) {
+    // Could be more fields than the defined ones.
+    // Adjust line width from the first line.
+    options.width = buffer.byteLength
+  } else if (buffer.byteLength !== options.width && !options.relax) {
     throw new FixedWidthError(
       'UNEXPECTED_LINE_LENGTH',
       `Line ${line} has an unexpected lenght`,
