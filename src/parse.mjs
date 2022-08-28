@@ -110,7 +110,7 @@ export function parseFields (buffer, options, line = 1) {
   } else if (buffer.byteLength !== options.width && !options.relax) {
     throw new FixedWidthError(
       'UNEXPECTED_LINE_LENGTH',
-      `Line ${line} has an unexpected lenght`,
+      `Line ${line} has an unexpected length`,
       { line, value: buffer.toString(options.encoding) }
     )
   }
