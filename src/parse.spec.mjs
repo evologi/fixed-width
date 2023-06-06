@@ -3,7 +3,6 @@ import test from 'ava'
 import { parseOptions } from './options.mjs'
 import {
   guessEndOfLine,
-  isMatching,
   parse,
   parseField,
   parseFields,
@@ -17,12 +16,19 @@ test('parse field', t => {
     fields: [{ column: 2, width: 3 }]
   })
 
-  const buffer = Buffer.from('abcdefg')
-
   t.deepEqual(
-    parseField(buffer, options.fields[0], options, 1),
+    parseField('abcdefg', options.fields[0], options, 1),
     'bcd'
   )
+})
+
+test('parse uft8', t => {
+  const items = parse('àà\nèè\nìì\nòò\nùù', {
+    fields: [
+      { width: 2 }
+    ]
+  })
+  t.deepEqual(items, [['àà'], ['èè'], ['ìì'], ['òò'], ['ùù']])
 })
 
 test('parse array', t => {
@@ -31,10 +37,8 @@ test('parse array', t => {
     trim: 'right'
   })
 
-  const buffer = Buffer.from(' a  b  c ')
-
   t.deepEqual(
-    parseFields(buffer, options),
+    parseFields(' a  b  c ', options),
     [' a', ' b', ' c']
   )
 })
@@ -58,10 +62,8 @@ test('parse object', t => {
     trim: false
   })
 
-  const buffer = Buffer.from(' a  b  c ')
-
   t.deepEqual(
-    parseFields(buffer, options),
+    parseFields(' a  b  c ', options),
     {
       A: ' a ',
       B: ' b ',
@@ -70,21 +72,27 @@ test('parse object', t => {
   )
 })
 
-test('eol match', t => {
-  const eol = Buffer.from('\r\n')
-  t.false(isMatching(Buffer.from('\n'), eol))
-  t.false(isMatching(Buffer.from('\r'), eol))
-  t.false(isMatching(Buffer.from('\n\r'), eol))
-  t.true(isMatching(Buffer.from('\r\n'), eol))
-  t.true(isMatching(Buffer.from('  \r\n  '), eol, 2))
-  t.false(isMatching(Buffer.from(' '), eol, 2))
-})
-
 test('unexpected line length', t => {
+  const fields = [{ width: 42 }]
   t.throws(
     () => parse(
       'test',
-      [{ width: 42 }]
+      {
+        allowLongerLines: true,
+        allowShorterLines: false,
+        fields
+      }
+    ),
+    { code: 'UNEXPECTED_LINE_LENGTH' }
+  )
+  t.throws(
+    () => parse(
+      'A towel, it says, is about the most massively useful thing an interstellar hitchhiker can have.',
+      {
+        allowLongerLines: false,
+        allowShorterLines: true,
+        fields
+      }
     ),
     { code: 'UNEXPECTED_LINE_LENGTH' }
   )
@@ -92,8 +100,6 @@ test('unexpected line length', t => {
 
 test('parse and cast', t => {
   t.plan(3)
-
-  const buffer = Buffer.from('--0420')
 
   const options = parseOptions({
     fields: [
@@ -117,7 +123,7 @@ test('parse and cast', t => {
   })
 
   t.deepEqual(
-    parseFields(buffer, options),
+    parseFields('--0420', options),
     ['--', 42]
   )
 })
@@ -144,11 +150,12 @@ test('trimString', t => {
 })
 
 test('guessEndOfLine', t => {
-  t.is(guessEndOfLine(Buffer.from('asdasd')), undefined)
-  t.is(guessEndOfLine(Buffer.from('asd\rasd')).toString(), '\r')
-  t.is(guessEndOfLine(Buffer.from('asd\r\nasd')).toString(), '\r\n')
-  t.is(guessEndOfLine(Buffer.from('asd\nasd')).toString(), '\n')
-  t.is(guessEndOfLine(Buffer.from('asd\n\rasd')).toString(), '\n')
+  t.is(guessEndOfLine('asdasd'), undefined)
+  t.is(guessEndOfLine('asd\rasd'), '\r')
+  t.is(guessEndOfLine('asd\r\nasd'), '\r\n')
+  t.is(guessEndOfLine('asd\nasd'), '\n')
+  t.is(guessEndOfLine('asd\n\rasd'), '\n')
+  t.is(guessEndOfLine('asd\r'), undefined) // could be Windows
 })
 
 test('partial width parsing', t => {

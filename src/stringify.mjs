@@ -13,76 +13,88 @@ export class Stringifier {
       readableObjectMode: false,
       writableObjectMode: true,
       transform (chunk, encoding, callback) {
+        let reason = null
         try {
-          callback(null, stringifier.write([chunk]))
+          for (const text of stringifier.write([chunk])) {
+            this.push(text)
+          }
         } catch (err) {
-          callback(err)
+          reason = err
         }
+        callback(reason)
       },
       flush (callback) {
+        let reason = null
         try {
-          callback(null, stringifier.end())
+          this.push(Array.from(stringifier.end()).join(''))
         } catch (err) {
-          callback(err)
+          reason = err
         }
+        callback(reason)
       }
     })
   }
 
   constructor (options) {
-    this.line = 1
     this.options = parseOptions(options)
-    if (!this.options.eol.byteLength) {
-      this.options.eol = Buffer.from(os.EOL)
+    if (!this.options.eol) {
+      this.options = { ...this.options, eol: os.EOL }
     }
+    this.line = 1
   }
 
   end () {
     this.line = 1
-    if (this.options.eof) {
-      return this.options.eol
-    } else {
-      return Buffer.alloc(0)
-    }
+    return [] // empty iterable (this method just reset the internal status)
   }
 
-  write (iterable) {
-    const chunks = []
+  * write (iterable) {
     for (const item of iterable) {
-      const line = this.line++
-      if (line > 1) {
-        chunks.push(this.options.eol)
+      let text = ''
+      if (!this.options.eof && this.line > 1) {
+        text += this.options.eol
       }
-      chunks.push(stringifyFields(item, this.options, line))
+      text += stringifyFields(item, this.options, this.line++)
+      if (this.options.eof) {
+        text += this.options.eol
+      }
+      yield text
     }
-    return Buffer.concat(chunks)
   }
 }
 
 export function stringify (iterable, options) {
   const stringifier = new Stringifier(options)
-  return Buffer.concat([
-    stringifier.write(iterable),
-    stringifier.end()
-  ]).toString(options.encoding)
+  return Array
+    .from(stringifier.write(iterable))
+    .concat(Array.from(stringifier.end()))
+    .join('')
 }
 
-export function stringifyFields (values, options, line = 1) {
-  values = Object(values)
-  const buffer = Buffer.alloc(options.width, options.pad, options.encoding)
+export function stringifyFields (obj, options, line = 1) {
+  obj = Object(obj)
+
+  let text = ''.padEnd(options.width, options.pad)
+
   for (const field of options.fields) {
-    buffer.write(
-      stringifyField(values, field, options, line),
-      field.column - 1,
-      field.width,
-      options.encoding
+    text = replaceWith(
+      text,
+      stringifyField(obj, field, options, line),
+      field.column - 1
     )
   }
-  return buffer
+
+  return text
 }
 
-export function stringifyField (values, field, options, line) {
-  let value = stringifyValue(values[field.property])
+export function replaceWith (text, value, index = 0) {
+  const before = text.substring(0, index)
+  const after = text.substring(index + value.length)
+  return before + value + after
+}
+
+export function stringifyField (obj, field, options, line) {
+  let value = stringifyValue(obj[field.property], options.encoding)
   if (typeof value !== 'string') {
     throw new FixedWidthError(
       'EXPECTED_STRING_VALUE',
@@ -108,12 +120,14 @@ export function stringifyField (values, field, options, line) {
   return value
 }
 
-export function stringifyValue (value) {
-  return stringifyPrimitiveValue(
-    typeof value === 'object' && value !== null
-      ? value.valueOf()
-      : value
-  )
+export function stringifyValue (value, encoding) {
+  return Buffer.isBuffer(value)
+    ? value.toString(encoding)
+    : stringifyPrimitiveValue(
+        typeof value === 'object' && value !== null
+          ? value.valueOf()
+          : value
+      )
 }
 
 export function stringifyPrimitiveValue (value) {

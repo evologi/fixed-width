@@ -17,19 +17,19 @@ test('Parser', t => {
 
   t.is(parser.line, 1)
   t.deepEqual(
-    Array.from(parser.write(Buffer.from('helloworld\r'))),
+    Array.from(parser.write('helloworld\r')),
     []
   )
 
   t.is(parser.line, 1)
   t.deepEqual(
-    Array.from(parser.write(Buffer.from('\n'))),
+    Array.from(parser.write('\n')),
     [{ a: 'hello', b: 'world' }]
   )
 
   t.is(parser.line, 2)
   t.deepEqual(
-    Array.from(parser.write(Buffer.from('worldhello\r\n'))),
+    Array.from(parser.write('worldhello\r\n')),
     [{ a: 'world', b: 'hello' }]
   )
 
@@ -44,6 +44,7 @@ test('Parser', t => {
 
 test('Stringifier', t => {
   const stringifier = new Stringifier({
+    eof: true,
     eol: '\r\n',
     fields: [
       { align: 'left', property: 'a', width: 10 },
@@ -54,35 +55,33 @@ test('Stringifier', t => {
 
   t.is(stringifier.line, 1)
   t.is(
-    stringifier
-      .write([
+    Array.from(
+      stringifier.write([
         { a: 'Harry', b: 'Ron', c: 'Hermione' },
         { a: 'Blossom', b: 'Bubbles', c: 'Buttercup' }
       ])
-      .toString(),
-    'Harry            RonHermione  \r\nBlossom      BubblesButtercup '
+    ).join(''),
+    'Harry            RonHermione  \r\nBlossom      BubblesButtercup \r\n'
   )
 
   t.is(stringifier.line, 3)
   t.is(
-    stringifier
-      .write([])
-      .toString(),
+    Array.from(stringifier.write([])).join(''),
     ''
   )
 
   t.is(stringifier.line, 3)
   t.is(
-    stringifier
-      .write([{ a: 'Tom', b: null, c: 'Jerry' }])
-      .toString(),
-    '\r\nTom                 Jerry     '
+    Array.from(
+      stringifier.write([{ a: 'Tom', b: null, c: 'Jerry' }])
+    ).join(''),
+    'Tom                 Jerry     \r\n'
   )
 
   t.is(stringifier.line, 4)
   t.is(
-    stringifier.end().toString(),
-    '\r\n'
+    Array.from(stringifier.end()).join(''),
+    ''
   )
 
   t.is(stringifier.line, 1)

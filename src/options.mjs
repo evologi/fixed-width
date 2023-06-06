@@ -14,12 +14,12 @@ export function parseOptions (options) {
   if (typeof pad !== 'string') {
     throw new TypeError('Padding value (pad) must be a string')
   }
-  if (getByteLength(pad, encoding) !== 1) {
-    throw new Error('Padding value (pad) must be a single char (one byte)')
+  if (pad.length !== 1) {
+    throw new Error('Padding value (pad) must be a single char')
   }
 
   const eol = options.eol || ''
-  if (typeof eol !== 'string') {
+  if (typeof eol !== 'string' && !(eol instanceof RegExp)) {
     throw new TypeError('End of line (eol) value must be a string')
   }
 
@@ -48,14 +48,19 @@ export function parseOptions (options) {
   }
 
   return {
+    allowLongerLines: typeof options.relax === 'boolean'
+      ? options.relax
+      : options.allowLongerLines !== false,
+    allowShorterLines: typeof options.relax === 'boolean'
+      ? options.relax
+      : options.allowShorterLines === true,
     encoding,
     eof: options.eof !== false,
-    eol: Buffer.from(eol, encoding),
+    eol,
     fields,
     from,
     output: properties > 0 ? 'object' : 'array',
     pad,
-    relax: options.relax === true,
     to,
     trim: options.trim === 'left' || options.trim === 'right'
       ? options.trim
@@ -95,8 +100,8 @@ function parseField (field, index, defaultColumn, defaultPad, encoding) {
   if (typeof pad !== 'string') {
     throw new TypeError('Padding value (pad) must be a string')
   }
-  if (getByteLength(pad, encoding) !== 1) {
-    throw new Error('Padding value (pad) must be a single char (one byte)')
+  if (pad.length !== 1) {
+    throw new Error('Padding value (pad) must be a single char')
   }
 
   return {
@@ -147,8 +152,4 @@ function isPositiveInteger (value) {
 
 function isPropertyKey (value) {
   return typeof value === 'string' || typeof value === 'symbol'
-}
-
-function getByteLength (value, encoding) {
-  return Buffer.byteLength(value, encoding)
 }

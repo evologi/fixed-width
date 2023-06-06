@@ -2,6 +2,18 @@ import { Transform } from "stream";
 
 export interface Options {
   /**
+   * Allow lines to be longer than the declared fields while parsing.
+   *
+   * @default true
+   */
+  allowLongerLines?: boolean;
+  /**
+   * Allow lines to be shorter than the declared fields while parsing.
+   *
+   * @default false
+   */
+  allowShorterLines?: boolean;
+  /**
    * Encoding for both input or output data.
    *
    * @default "utf8"
@@ -34,9 +46,7 @@ export interface Options {
    */
   pad?: string;
   /**
-   * If `true`, partial lines (total width is less than expected) will not throw any error.
-   *
-   * @default false
+   * @deprecated Use `allowLongerLines` and `allowShorterLines` options.
    */
   relax?: boolean;
   /**
@@ -115,8 +125,8 @@ export declare class Stringifier {
    * @constructor
    */
   constructor(options: Options);
-  end(): Buffer;
-  write(iterable: Iterable<any>): Buffer;
+  end(): Iterable<string>;
+  write(iterable: Iterable<any>): Iterable<string>;
 }
 
 export declare function parse<T = unknown>(

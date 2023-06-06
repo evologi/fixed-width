@@ -1,4 +1,5 @@
-import { Transform } from 'stream'
+import { StringDecoder } from 'node:string_decoder'
+import { Transform } from 'node:stream'
 
 import { FixedWidthError } from './error.mjs'
 import { parseOptions } from './options.mjs'
@@ -37,63 +38,53 @@ export class Parser {
   }
 
   constructor (options) {
-    this.buffer = Buffer.alloc(0)
-    this.line = 1
     this.options = parseOptions(options)
+
+    this.decoder = new StringDecoder(this.options.encoding)
+    this.line = 1
+    this.text = ''
   }
 
   * end () {
-    if (this.buffer.byteLength > 0) {
+    if (this.text.length) {
       yield parseFields(
-        this.buffer,
+        this.text,
         this.options,
         this.line++
       )
     }
 
-    this.buffer = Buffer.alloc(0)
+    // Reset internal status
+    this.text = ''
     this.line = 1
   }
 
   * write (input) {
-    let buffer = Buffer.concat([
-      this.buffer,
-      Buffer.isBuffer(input)
-        ? input
-        : Buffer.from(input, this.options.encoding)
-    ])
+    this.text += typeof input === 'string'
+      ? input
+      : this.decoder.write(input)
 
-    if (!this.options.eol.byteLength) {
-      const eol = guessEndOfLine(buffer)
+    if (!this.options.eol) {
+      const eol = guessEndOfLine(this.text)
       if (eol) {
         this.options.eol = eol
       }
     }
 
-    if (this.options.eol.byteLength > 0) {
-      let index = 0
+    if (this.options.eol) {
+      const chunks = this.text.split(this.options.eol)
 
-      while (index < buffer.byteLength) {
-        if (isMatching(buffer, this.options.eol, index)) {
-          const line = this.line++
+      // Ignore last line (could be partial)
+      this.text = chunks.pop()
 
-          if (line >= this.options.from && line <= this.options.to) {
-            yield parseFields(
-              buffer.subarray(0, index),
-              this.options,
-              line
-            )
-          }
-
-          buffer = buffer.subarray(index + this.options.eol.byteLength)
-          index = 0
-        } else {
-          index++
-        }
+      for (const chunk of chunks) {
+        yield parseFields(
+          chunk,
+          this.options,
+          this.line++
+        )
       }
     }
-
-    this.buffer = buffer
   }
 }
 
@@ -102,16 +93,19 @@ export function parse (input, options) {
   return Array.from(parser.write(input)).concat(Array.from(parser.end()))
 }
 
-export function parseFields (buffer, options, line = 1) {
-  if (line === 1 && buffer.byteLength > options.width) {
-    // Could be more fields than the defined ones.
-    // Adjust line width from the first line.
-    options.width = buffer.byteLength
-  } else if (buffer.byteLength !== options.width && !options.relax) {
+export function parseFields (text, options, line = 1) {
+  if (text.length > options.width && !options.allowLongerLines) {
     throw new FixedWidthError(
       'UNEXPECTED_LINE_LENGTH',
-      `Line ${line} has an unexpected lenght`,
-      { line, value: buffer.toString(options.encoding) }
+      `Line ${line} is longer than expected`,
+      { line, value: text }
+    )
+  }
+  if (text.length < options.width && !options.allowShorterLines) {
+    throw new FixedWidthError(
+      'UNEXPECTED_LINE_LENGTH',
+      `Line ${line} is shorted than expected`,
+      { line, value: text }
     )
   }
 
@@ -120,24 +114,22 @@ export function parseFields (buffer, options, line = 1) {
       (acc, field) => set(
         acc,
         field.property,
-        parseField(buffer, field, options, line)
+        parseField(text, field, options, line)
       ),
       {}
     )
   } else {
     return options.fields.map(
-      field => parseField(buffer, field, options, line)
+      field => parseField(text, field, options, line)
     )
   }
 }
 
-export function parseField (buffer, field, options, line) {
+export function parseField (text, field, options, line) {
   const index = field.column - 1
 
   const value = trimString(
-    buffer
-      .subarray(index, index + field.width)
-      .toString(options.encoding),
+    text.substring(index, index + field.width),
     field.pad,
     options.trim
   )
@@ -157,31 +149,22 @@ function set (obj, key, value) {
   return obj
 }
 
-const lf = 0x0a // \n byte, Line Feed
-const cr = 0x0d // \r byte, Carriage Return
+export function guessEndOfLine (text) {
+  if (/\r\n/.test(text)) {
+    // Windows
+    return '\r\n'
+  }
 
-export function guessEndOfLine (buffer) {
-  for (let i = 0; i < buffer.byteLength; i++) {
-    const char = buffer[i]
-
-    if (char === lf) {
-      return Buffer.from('\n')
-    } else if (char === cr) {
-      if (buffer[i + 1] === lf) {
-        return Buffer.from('\r\n')
-      } else {
-        return Buffer.from('\r')
-      }
+  const result = text.match(/[\r\n]{1,2}/)
+  if (result) {
+    if (text[result.index] === '\n') {
+      // Linux
+      return '\n'
+    } else if (text.length > result.index + 1) {
+      // Apple
+      return '\r'
     }
   }
-}
-
-export function isMatching (buffer, eol, offset = 0) {
-  let index = 0
-  while (index < eol.byteLength && buffer[index + offset] === eol[index]) {
-    index++
-  }
-  return index >= eol.byteLength
 }
 
 export function trimStart (value, pad) {

@@ -8,11 +8,12 @@ test('defaults', t => {
     fields: [{ width: 2 }, { width: 2 }]
   })
 
-  t.true(Buffer.isBuffer(options.eol))
   t.deepEqual(options, {
+    allowLongerLines: true,
+    allowShorterLines: false,
     encoding: 'utf8',
     eof: true,
-    eol: options.eol,
+    eol: '\n',
     fields: [
       {
         align: 'left',
@@ -34,7 +35,6 @@ test('defaults', t => {
     from: 1,
     output: 'array',
     pad: ' ',
-    relax: false,
     to: Number.POSITIVE_INFINITY,
     trim: true,
     width: 4

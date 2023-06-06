@@ -34,7 +34,7 @@ test('stringify fields', t => {
     b: new Date(42)
   }
 
-  const text = stringifyFields(values, options).toString()
+  const text = stringifyFields(values, options)
   t.is(text, '  1.3 42   ')
 })
 
@@ -78,4 +78,25 @@ test('field level padding', t => {
   )
 
   t.is(buffer.toString(), 'test--0042')
+})
+
+test('stringify utf8', t => {
+  const text = stringify(
+    [
+      ['àà'],
+      ['èè'],
+      ['ìì'],
+      ['òò'],
+      ['ùù']
+    ],
+    {
+      eol: '\n',
+      eof: false,
+      fields: [
+        { width: 2 }
+      ]
+    }
+  )
+
+  t.is(text, 'àà\nèè\nìì\nòò\nùù')
 })
