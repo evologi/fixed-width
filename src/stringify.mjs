@@ -124,10 +124,10 @@ export function stringifyValue (value, encoding) {
   return Buffer.isBuffer(value)
     ? value.toString(encoding)
     : stringifyPrimitiveValue(
-        typeof value === 'object' && value !== null
-          ? value.valueOf()
-          : value
-      )
+      typeof value === 'object' && value !== null
+        ? value.valueOf()
+        : value
+    )
 }
 
 export function stringifyPrimitiveValue (value) {
