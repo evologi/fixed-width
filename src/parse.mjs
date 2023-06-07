@@ -106,16 +106,16 @@ export function parse (input, options) {
 
 function * parseIterable (iterable, parser) {
   for (const data of iterable) {
-    yield* parser.write(data)
+    yield * parser.write(data)
   }
-  yield* parser.end()
+  yield * parser.end()
 }
 
 async function * parseAsyncIterable (iterable, parser) {
   for await (const data of iterable) {
-    yield* parser.write(data)
+    yield * parser.write(data)
   }
-  yield* parser.end()
+  yield * parser.end()
 }
 
 export function parseFields (text, options, line = 1) {

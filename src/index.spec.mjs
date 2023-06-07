@@ -56,7 +56,7 @@ test('Stringifier', t => {
 
   t.is(
     stringifier.write(
-      { a: 'Harry', b: 'Ron', c: 'Hermione' },
+      { a: 'Harry', b: 'Ron', c: 'Hermione' }
     ),
     'Harry            RonHermione  \r\n'
   )
