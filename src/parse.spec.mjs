@@ -173,3 +173,29 @@ test('partial width parsing', t => {
     ['s', 'g']
   ])
 })
+
+test('skip empty lines', t => {
+  const fields = [
+    { width: 1 }
+  ]
+
+  t.like(
+    parse('\na\n\nb\nc\n\n\n', {
+      allowShorterLines: true,
+      eol: '\n',
+      fields,
+      skipEmptyLines: false
+    }),
+    [[''], ['a'], [''], ['b'], ['c'], [''], ['']]
+  )
+
+  t.like(
+    parse('\na\n\nb\nc\n\n\n', {
+      allowShorterLines: true,
+      eol: '\n',
+      fields,
+      skipEmptyLines: true
+    }),
+    [['a'], ['b'], ['c']]
+  )
+})

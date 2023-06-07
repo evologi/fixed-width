@@ -1,4 +1,4 @@
-import { Transform } from "stream";
+import { Transform } from "node:stream";
 
 export interface Options {
   /**
@@ -49,6 +49,13 @@ export interface Options {
    * @deprecated Use `allowLongerLines` and `allowShorterLines` options.
    */
   relax?: boolean;
+  /**
+   * Completely ignore all empty lines. This options does **not** change the
+   * behaviour of the `allowShorterLines` option.
+   *
+   * @default true
+   */
+  skipEmptyLines?: boolean;
   /**
    * Ending line to parse.
    *

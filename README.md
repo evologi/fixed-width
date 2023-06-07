@@ -166,7 +166,7 @@ stream.end()
 
 ### `Stringifier.stream(options)`
 
-It returns a [`Transform stream`](https://nodejs.org/api/stream.html#class-streamtransform) that accepts objects (o arrays) as input and emits the serialized data chunks (buffers).
+It returns a [`Transform stream`](https://nodejs.org/api/stream.html#class-streamtransform) that accepts objects (o arrays) as input and emits the serialized strings.
 
 - `options` `<Object>` See [options section](#options).
 - Returns: [`<Transform>`](https://nodejs.org/api/stream.html#class-streamtransform)
@@ -196,7 +196,7 @@ let text = ''
 
 stream
   .on('error', err => console.error(err))
-  .on('data', buffer => { text += buffer.toString() })
+  .on('data', data => { text += data.toString() })
   .on('end', () => {
     // 'alice       024\nbob         030\n'
     console.log(text)
@@ -225,7 +225,7 @@ It accepts a string or a buffer as input and returns an iterable that outputs al
 
 #### `Parser#end()`
 
-It resets the `Parser` status and returns an iterable that could output other objects contained on the last partial row (line). See [`relax`](#relax) option.
+It resets the `Parser` status and returns an iterable that could output other objects contained on the last partial row (line).
 
 - Returns: `<Iterable>`
 
@@ -270,16 +270,16 @@ It consists of only two methods, and all those methods are strictly synchronous.
 
 #### `Stringifier#write(iterable)`
 
-It accepts an iterable of objects and returns a serialized buffer up to the last serializable object.
+It accepts an iterable of objects and returns an iterable of strings where each string represents one stringified object.
 
 - `iterable` `<Iterable>`
-- Returns: `<Buffer>`
+- Returns: `<Iterable>`
 
 #### `Stringifier#end()`
 
-It resets the `Stringifier` status and returns the closing buffer.
+Returns the closing iterable of strings.
 
-- Returns: `<Buffer>`
+- Returns: `<Iterable>`
 
 ```javascript
 import { Stringifier } from '@evologi/fixed-width'
@@ -302,16 +302,19 @@ const stringifier = new Stringifier({
   ]
 })
 
-const buffer = Buffer.concat([
+const text = Array.from(
   stringifier.write([
     { username: 'alice', age: 24 },
     { username: 'bob', age: 30 }
-  ]),
-  stringifier.end()
-])
+  ])
+).concat(
+  Array.from(
+    stringifier.end()
+  )
+).join('')
 
 // 'alice       024\nbob         030\n'
-console.log(buffer.toString(stringifier.options.encoding))
+console.log(text)
 ```
 
 ## Options
@@ -380,13 +383,29 @@ Default: `Infinity`
 
 The last line to consider while parsing (inclusive). It is a **1-based** integer (one is the first line).
 
-### `relax`
+### `allowLongerLines`
 
 Type: `<Boolean>`
 
+Allow lines to be longer than the declared fields while parsing.
+
+Default: `true`
+
+### `allowShorterLines`
+
+Type: `<Boolean>`
+
+Allow lines to be shorter than the declared fields while parsing.
+
 Default: `false`
 
-If `true`, partial lines are parsed without throwing an error.
+### `skipEmptyLines`
+
+Type: `<Boolean>`
+
+Completely ignore all empty lines. This options does **not** change the behaviour of the `allowShorterLines` option.
+
+Default: `true`
 
 ### `fields`
 
@@ -461,7 +480,9 @@ All errors that can occur during the parsing or serializing phase contain an err
 
 ### `UNEXPECTED_LINE_LENGTH`
 
-This error is raised when a partial line is found. You can suppress this error with the [`relax`](#relax) option.
+This error is raised when a partial line is found.
+
+You can suppress this error with [`allowLongerLines`](#allowLongerLines) or [`allowShorterLines`](#allowShorterLines) options.
 
 ### `EXPECTED_STRING_VALUE`
 

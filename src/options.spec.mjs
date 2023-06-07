@@ -35,6 +35,7 @@ test('defaults', t => {
     from: 1,
     output: 'array',
     pad: ' ',
+    skipEmptyLines: true,
     to: Number.POSITIVE_INFINITY,
     trim: true,
     width: 4

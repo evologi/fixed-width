@@ -61,6 +61,7 @@ export function parseOptions (options) {
     from,
     output: properties > 0 ? 'object' : 'array',
     pad,
+    skipEmptyLines: options.skipEmptyLines !== false,
     to,
     trim: options.trim === 'left' || options.trim === 'right'
       ? options.trim

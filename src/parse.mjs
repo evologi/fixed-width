@@ -78,11 +78,13 @@ export class Parser {
       this.text = chunks.pop()
 
       for (const chunk of chunks) {
-        yield parseFields(
-          chunk,
-          this.options,
-          this.line++
-        )
+        if (chunk.length > 0 || !this.options.skipEmptyLines) {
+          yield parseFields(
+            chunk,
+            this.options,
+            this.line++
+          )
+        }
       }
     }
   }
