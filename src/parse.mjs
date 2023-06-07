@@ -122,14 +122,14 @@ export function parseFields (text, options, line = 1) {
   if (text.length > options.width && !options.allowLongerLines) {
     throw new FixedWidthError(
       'UNEXPECTED_LINE_LENGTH',
-      `Line ${line} is longer than expected`,
+      `Line ${line} is longer than expected (see allowLongerLines options)`,
       { line, value: text }
     )
   }
   if (text.length < options.width && !options.allowShorterLines) {
     throw new FixedWidthError(
       'UNEXPECTED_LINE_LENGTH',
-      `Line ${line} is shorted than expected`,
+      `Line ${line} is shorted than expected (see allowShorterLines options)`,
       { line, value: text }
     )
   }
