@@ -1,5 +1,5 @@
-import os from 'os'
-import { Transform } from 'stream'
+import os from 'node:os'
+import { Transform } from 'node:stream'
 
 import { FixedWidthError } from './error.mjs'
 import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'

@@ -10,5 +10,9 @@ export default {
       format: 'es'
     }
   ],
-  external: ['stream', 'os']
+  external: [
+    'node:os',
+    'node:stream',
+    'node:string_decoder'
+  ]
 }

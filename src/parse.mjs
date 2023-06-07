@@ -1,5 +1,5 @@
-import { StringDecoder } from 'node:string_decoder'
 import { Transform } from 'node:stream'
+import { StringDecoder } from 'node:string_decoder'
 
 import { FixedWidthError } from './error.mjs'
 import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
