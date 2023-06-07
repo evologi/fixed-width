@@ -1,5 +1,10 @@
 import { Transform } from "node:stream";
 
+export declare class FixedWidthError extends Error {
+  code: string;
+  [key: string]: any;
+}
+
 export interface Options {
   /**
    * Allow lines to be longer than the declared fields while parsing.
