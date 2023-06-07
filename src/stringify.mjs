@@ -2,7 +2,7 @@ import os from 'os'
 import { Transform } from 'stream'
 
 import { FixedWidthError } from './error.mjs'
-import { parseOptions } from './options.mjs'
+import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
 
 export class Stringifier {
   static stream (options) {
@@ -15,9 +15,7 @@ export class Stringifier {
       transform (chunk, encoding, callback) {
         let reason = null
         try {
-          for (const text of stringifier.write([chunk])) {
-            this.push(text)
-          }
+          this.push(stringifier.write(chunk))
         } catch (err) {
           reason = err
         }
@@ -26,7 +24,7 @@ export class Stringifier {
       flush (callback) {
         let reason = null
         try {
-          this.push(Array.from(stringifier.end()).join(''))
+          this.push(stringifier.end())
         } catch (err) {
           reason = err
         }
@@ -45,30 +43,54 @@ export class Stringifier {
 
   end () {
     this.line = 1
-    return [] // empty iterable (this method just reset the internal status)
+    return ''
   }
 
-  * write (iterable) {
-    for (const item of iterable) {
-      let text = ''
-      if (!this.options.eof && this.line > 1) {
-        text += this.options.eol
-      }
-      text += stringifyFields(item, this.options, this.line++)
-      if (this.options.eof) {
-        text += this.options.eol
-      }
-      yield text
+  write (obj) {
+    let text = ''
+    if (!this.options.eof && this.line > 1) {
+      text += this.options.eol
     }
+    text += stringifyFields(obj, this.options, this.line++)
+    if (this.options.eof) {
+      text += this.options.eol
+    }
+    return text
   }
 }
 
-export function stringify (iterable, options) {
+export function stringify (input, options) {
   const stringifier = new Stringifier(options)
-  return Array
-    .from(stringifier.write(iterable))
-    .concat(Array.from(stringifier.end()))
-    .join('')
+
+  if (Array.isArray(input)) {
+    return Array.from(stringifyIterable(input, stringifier)).join('')
+  } else if (isIterable(input)) {
+    return stringifyIterable(input, stringifier)
+  } else if (isAsyncIterable(input)) {
+    return stringifyAsyncIterable(input, stringifier)
+  } else {
+    throw new TypeError('Expected array or iterable')
+  }
+}
+
+function * stringifyIterable (iterable, stringifier) {
+  for (const data of iterable) {
+    yield stringifier.write(data)
+  }
+  const tail = stringifier.end()
+  if (tail) {
+    yield tail
+  }
+}
+
+async function * stringifyAsyncIterable (iterable, stringifier) {
+  for await (const data of iterable) {
+    yield stringifier.write(data)
+  }
+  const tail = stringifier.end()
+  if (tail) {
+    yield tail
+  }
 }
 
 export function stringifyFields (obj, options, line = 1) {

@@ -1,6 +1,6 @@
 import test from 'ava'
 
-import { parseOptions } from './options.mjs'
+import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
 
 test('defaults', t => {
   const options = parseOptions({
@@ -62,4 +62,18 @@ test('validation', t => {
     { column: 1, width: 1 },
     { column: 1, width: 1 }
   ]))
+})
+
+test('isIterable', t => {
+  t.false(isIterable(null))
+  t.false(isIterable('test'))
+  t.false(isIterable({}))
+  t.true(isIterable([]))
+})
+
+test('isAsyncIterable', t => {
+  t.false(isAsyncIterable(null))
+  t.false(isAsyncIterable('test'))
+  t.false(isAsyncIterable({}))
+  t.false(isAsyncIterable([]))
 })

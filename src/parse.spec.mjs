@@ -1,6 +1,6 @@
 import test from 'ava'
 
-import { parseOptions } from './options.mjs'
+import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
 import {
   guessEndOfLine,
   parse,
@@ -198,4 +198,108 @@ test('skip empty lines', t => {
     }),
     [['a'], ['b'], ['c']]
   )
+})
+
+test('in-memory parse', t => {
+  const options = {
+    fields: [
+      {
+        cast: value => parseInt(value, 10),
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  t.like(
+    parse('42', options),
+    [{ value: 42 }]
+  )
+  t.like(
+    parse(Buffer.from('42'), options),
+    [{ value: 42 }]
+  )
+})
+
+test('parse iterable', t => {
+  t.plan(7)
+
+  const options = {
+    fields: [
+      {
+        cast: value => parseInt(value, 10),
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  const input = {
+    [Symbol.iterator] () {
+      t.pass()
+      let done = false
+      return {
+        next () {
+          t.pass()
+          if (done) {
+            return { done: true }
+          } else {
+            done = true
+            return { done: false, value: '42' }
+          }
+        }
+      }
+    }
+  }
+
+  const output = parse(input, options)
+  t.false(Array.isArray(output))
+  t.true(isIterable(output))
+  t.false(isAsyncIterable(output))
+
+  t.like(
+    Array.from(output),
+    [{ value: 42 }]
+  )
+})
+
+test('parse async iterable', async t => {
+  t.plan(7)
+
+  const options = {
+    fields: [
+      {
+        cast: value => parseInt(value, 10),
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  const input = {
+    [Symbol.asyncIterator] () {
+      t.pass()
+      let done = false
+      return {
+        next () {
+          t.pass()
+          if (done) {
+            return Promise.resolve({ done: true })
+          } else {
+            done = true
+            return Promise.resolve({ done: false, value: '42' })
+          }
+        }
+      }
+    }
+  }
+
+  const output = parse(input, options)
+  t.false(Array.isArray(output))
+  t.false(isIterable(output))
+  t.true(isAsyncIterable(output))
+
+  for await (const data of output) {
+    t.like(data, { value: 42 })
+  }
 })

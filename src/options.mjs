@@ -154,3 +154,11 @@ function isPositiveInteger (value) {
 function isPropertyKey (value) {
   return typeof value === 'string' || typeof value === 'symbol'
 }
+
+export function isIterable (value) {
+  return typeof value !== 'string' && Symbol.iterator in Object(value)
+}
+
+export function isAsyncIterable (value) {
+  return Symbol.asyncIterator in Object(value)
+}

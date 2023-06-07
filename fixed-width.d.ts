@@ -119,8 +119,14 @@ export declare class Parser<T = unknown> {
    * @constructor
    */
   constructor(options: Options);
+  /**
+   * Push a chunk of text. Returns an iterable that yields the parsed objects.
+   */
+  write(chunk: string | Buffer): Iterable<T>;
+  /**
+   * Returns a final iterable that yields the remaining objects (if any).
+   */
   end(): Iterable<T>;
-  write(input: string | Buffer): Iterable<T>;
 }
 
 export declare class Stringifier {
@@ -132,16 +138,49 @@ export declare class Stringifier {
    * @constructor
    */
   constructor(options: Options);
-  end(): Iterable<string>;
-  write(iterable: Iterable<any>): Iterable<string>;
+  /**
+   * Push an object to serialize. Returns the serialized text of the passed object, including new line terminators.
+   */
+  write(obj: object): string;
+  /**
+   * Close the parsing and returns a final string.
+   */
+  end(): string;
 }
 
+/**
+ * Parse objects from buffer or text.
+ *
+ * If the argument is string or buffer, the output will be an array. The whole conversion is performed at the moment and in-memory.
+ *
+ * If the argument is some kind of iterable (sync or async), the output will be the same kind of inputted iterable.
+ */
 export declare function parse<T = unknown>(
   input: string | Buffer,
   options: Options
 ): T[];
-
-export declare function stringify(
-  iterable: Iterable<any>,
+export declare function parse<T = unknown>(
+  input: Iterable<string | Buffer>,
   options: Options
-): string;
+): Iterable<T>;
+export declare function parse<T = unknown>(
+  input: AsyncIterable<string | Buffer>,
+  options: Options
+): AsyncIterable<T>;
+
+/**
+ * Stringify objects to text.
+ *
+ * If the argument is an array, the output will be a string. The whole conversion is performed at the moment and in-memory.
+ *
+ * If the argument is some kind of iterable (sync or async), the output will be the same kind of inputted iterable.
+ */
+export declare function stringify(input: any[], options: Options): string;
+export declare function stringify(
+  input: Iterable<any>,
+  options: Options
+): Iterable<string>;
+export declare function stringify(
+  input: AsyncIterable<any>,
+  options: Options
+): AsyncIterable<string>;

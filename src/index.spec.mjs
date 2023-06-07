@@ -52,38 +52,36 @@ test('Stringifier', t => {
       { align: 'left', property: 'c', width: 10 }
     ]
   })
-
   t.is(stringifier.line, 1)
-  t.is(
-    Array.from(
-      stringifier.write([
-        { a: 'Harry', b: 'Ron', c: 'Hermione' },
-        { a: 'Blossom', b: 'Bubbles', c: 'Buttercup' }
-      ])
-    ).join(''),
-    'Harry            RonHermione  \r\nBlossom      BubblesButtercup \r\n'
-  )
 
-  t.is(stringifier.line, 3)
   t.is(
-    Array.from(stringifier.write([])).join(''),
-    ''
+    stringifier.write(
+      { a: 'Harry', b: 'Ron', c: 'Hermione' },
+    ),
+    'Harry            RonHermione  \r\n'
   )
+  t.is(stringifier.line, 2)
 
-  t.is(stringifier.line, 3)
   t.is(
-    Array.from(
-      stringifier.write([{ a: 'Tom', b: null, c: 'Jerry' }])
-    ).join(''),
+    stringifier.write(
+      { a: 'Blossom', b: 'Bubbles', c: 'Buttercup' }
+    ),
+    'Blossom      BubblesButtercup \r\n'
+  )
+  t.is(stringifier.line, 3)
+
+  t.is(
+    stringifier.write(
+      { a: 'Tom', b: null, c: 'Jerry' }
+    ),
     'Tom                 Jerry     \r\n'
   )
-
   t.is(stringifier.line, 4)
+
   t.is(
-    Array.from(stringifier.end()).join(''),
+    stringifier.end(),
     ''
   )
-
   t.is(stringifier.line, 1)
 })
 

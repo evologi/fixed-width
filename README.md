@@ -60,13 +60,13 @@ npm i @evologi/fixed-width
 import { parse, stringify, Parser, Stringifier } from '@evologi/fixed-width'
 ```
 
-### `parse(stringOrBuffer, options)`
+### `parse(input, options)`
 
-It parses a text or a buffer into an array of elements.
+It parses a text or a buffer into an array of elements. If It receives string of buffer It returns an array of all parsed items. It It receives an iterable (could be `async`), returns the same type of iterable inputted.
 
-- `stringOrBuffer` `<String> | <Buffer>` The raw data to parse.
+- `input` `<String> | <Buffer> | <Iterable> | <AsyncIterable>` The raw data to parse.
 - `options` `<Object>` See [options section](#options).
-- Returns: `<Array>`
+- Returns: `<Array> | <Iterable> | <AsyncIterable>`
 
 ```javascript
 import { parse } from '@evologi/fixed-width'
@@ -92,13 +92,13 @@ const users = parse(text, {
 console.log(users)
 ```
 
-### `stringify(iterable, options)`
+### `stringify(input, options)`
 
-It serializes an array of elements into a string.
+It serializes an array of elements into a string. If the argument is an array, the output will be a string. The whole conversion is performed at the moment and in-memory. If the argument is some kind of iterable (sync or async), the output will be the same kind of inputted iterable.
 
-- `iterable` `<Iterable>` An [iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) that produces the elements to serialize. Arrays are iterable.
+- `input` `<Array> | <Iterable> | <AsyncIterable>`
 - `options` `<Object>` See [options section](#options).
-- Returns: `<String>`
+- Returns: `<String> | <Iterable> | <AsyncIterable>`
 
 ```javascript
 import { stringify } from '@evologi/fixed-width'
@@ -268,18 +268,18 @@ It creates a `Stringifier` instance. This object is useful when a custom optimiz
 
 It consists of only two methods, and all those methods are strictly synchronous.
 
-#### `Stringifier#write(iterable)`
+#### `Stringifier#write(obj)`
 
-It accepts an iterable of objects and returns an iterable of strings where each string represents one stringified object.
+Push an object to serialize. Returns the serialized text of the passed object, including new line terminators.
 
-- `iterable` `<Iterable>`
-- Returns: `<Iterable>`
+- `obj` `<*>`
+- Returns: `<String>`
 
 #### `Stringifier#end()`
 
-Returns the closing iterable of strings.
+Close the parsing and returns a final string.
 
-- Returns: `<Iterable>`
+- Returns: `<String>`
 
 ```javascript
 import { Stringifier } from '@evologi/fixed-width'
@@ -302,16 +302,10 @@ const stringifier = new Stringifier({
   ]
 })
 
-const text = Array.from(
-  stringifier.write([
-    { username: 'alice', age: 24 },
-    { username: 'bob', age: 30 }
-  ])
-).concat(
-  Array.from(
-    stringifier.end()
-  )
-).join('')
+let text = ''
+text += stringifier.write({ username: 'alice', age: 24 })
+text += stringifier.write({ username: 'bob', age: 30 })
+text += stringifier.end()
 
 // 'alice       024\nbob         030\n'
 console.log(text)

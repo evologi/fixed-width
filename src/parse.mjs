@@ -2,7 +2,7 @@ import { StringDecoder } from 'node:string_decoder'
 import { Transform } from 'node:stream'
 
 import { FixedWidthError } from './error.mjs'
-import { parseOptions } from './options.mjs'
+import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
 
 export class Parser {
   static stream (options) {
@@ -92,7 +92,30 @@ export class Parser {
 
 export function parse (input, options) {
   const parser = new Parser(options)
-  return Array.from(parser.write(input)).concat(Array.from(parser.end()))
+
+  if (typeof input === 'string' || Buffer.isBuffer(input)) {
+    return Array.from(parser.write(input)).concat(Array.from(parser.end()))
+  } else if (isIterable(input)) {
+    return parseIterable(input, parser)
+  } else if (isAsyncIterable(input)) {
+    return parseAsyncIterable(input, parser)
+  } else {
+    throw new TypeError('Expected string, buffer, or iterable')
+  }
+}
+
+function * parseIterable (iterable, parser) {
+  for (const data of iterable) {
+    yield* parser.write(data)
+  }
+  yield* parser.end()
+}
+
+async function * parseAsyncIterable (iterable, parser) {
+  for await (const data of iterable) {
+    yield* parser.write(data)
+  }
+  yield* parser.end()
 }
 
 export function parseFields (text, options, line = 1) {

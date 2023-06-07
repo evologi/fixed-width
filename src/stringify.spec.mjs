@@ -1,6 +1,6 @@
 import test from 'ava'
 
-import { parseOptions } from './options.mjs'
+import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
 import { stringify, stringifyFields, stringifyValue } from './stringify.mjs'
 
 test('stringify value', t => {
@@ -99,4 +99,109 @@ test('stringify utf8', t => {
   )
 
   t.is(text, 'àà\nèè\nìì\nòò\nùù')
+})
+
+test('in-memory stringify', t => {
+  const options = {
+    eol: '\n',
+    eof: false,
+    fields: [
+      {
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  t.is(
+    stringify([{ value: 42 }], options),
+    '42'
+  )
+})
+
+test('stringify iterable', t => {
+  t.plan(7)
+
+  const options = {
+    eol: '\n',
+    eof: false,
+    fields: [
+      {
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  const input = {
+    [Symbol.iterator] () {
+      t.pass()
+      let done = false
+      return {
+        next () {
+          t.pass()
+          if (done) {
+            return { done: true }
+          } else {
+            done = true
+            return { done: false, value: { value: 42 } }
+          }
+        }
+      }
+    }
+  }
+
+  const output = stringify(input, options)
+  t.false(Array.isArray(output))
+  t.true(isIterable(output))
+  t.false(isAsyncIterable(output))
+
+  t.is(
+    Array.from(output).join(''),
+    '42'
+  )
+})
+
+test('stringify async iterable', async t => {
+  t.plan(7)
+
+  const options = {
+    eol: '\n',
+    eof: false,
+    fields: [
+      {
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  const input = {
+    [Symbol.asyncIterator] () {
+      t.pass()
+      let done = false
+      return {
+        next () {
+          t.pass()
+          if (done) {
+            return Promise.resolve({ done: true })
+          } else {
+            done = true
+            return Promise.resolve({ done: false, value: { value: 42 } })
+          }
+        }
+      }
+    }
+  }
+
+  const output = stringify(input, options)
+  t.false(Array.isArray(output))
+  t.false(isIterable(output))
+  t.true(isAsyncIterable(output))
+
+  let text = ''
+  for await (const data of output) {
+    text += data
+  }
+  t.is(text, '42')
 })
