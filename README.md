@@ -60,13 +60,13 @@ npm i @evologi/fixed-width
 import { parse, stringify, Parser, Stringifier } from '@evologi/fixed-width'
 ```
 
-### `parse(stringOrBuffer, options)`
+### `parse(input, options)`
 
-It parses a text or a buffer into an array of elements.
+It parses a text or a buffer into an array of elements. If It receives string of buffer It returns an array of all parsed items. It It receives an iterable (could be `async`), returns the same type of iterable inputted.
 
-- `stringOrBuffer` `<String> | <Buffer>` The raw data to parse.
+- `input` `<String> | <Buffer> | <Iterable> | <AsyncIterable>` The raw data to parse.
 - `options` `<Object>` See [options section](#options).
-- Returns: `<Array>`
+- Returns: `<Array> | <Iterable> | <AsyncIterable>`
 
 ```javascript
 import { parse } from '@evologi/fixed-width'
@@ -92,13 +92,13 @@ const users = parse(text, {
 console.log(users)
 ```
 
-### `stringify(iterable, options)`
+### `stringify(input, options)`
 
-It serializes an array of elements into a string.
+It serializes an array of elements into a string. If the argument is an array, the output will be a string. The whole conversion is performed at the moment and in-memory. If the argument is some kind of iterable (sync or async), the output will be the same kind of inputted iterable.
 
-- `iterable` `<Iterable>` An [iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators) that produces the elements to serialize. Arrays are iterable.
+- `input` `<Array> | <Iterable> | <AsyncIterable>`
 - `options` `<Object>` See [options section](#options).
-- Returns: `<String>`
+- Returns: `<String> | <Iterable> | <AsyncIterable>`
 
 ```javascript
 import { stringify } from '@evologi/fixed-width'
@@ -166,7 +166,7 @@ stream.end()
 
 ### `Stringifier.stream(options)`
 
-It returns a [`Transform stream`](https://nodejs.org/api/stream.html#class-streamtransform) that accepts objects (o arrays) as input and emits the serialized data chunks (buffers).
+It returns a [`Transform stream`](https://nodejs.org/api/stream.html#class-streamtransform) that accepts objects (o arrays) as input and emits the serialized strings.
 
 - `options` `<Object>` See [options section](#options).
 - Returns: [`<Transform>`](https://nodejs.org/api/stream.html#class-streamtransform)
@@ -196,7 +196,7 @@ let text = ''
 
 stream
   .on('error', err => console.error(err))
-  .on('data', buffer => { text += buffer.toString() })
+  .on('data', data => { text += data.toString() })
   .on('end', () => {
     // 'alice       024\nbob         030\n'
     console.log(text)
@@ -225,7 +225,7 @@ It accepts a string or a buffer as input and returns an iterable that outputs al
 
 #### `Parser#end()`
 
-It resets the `Parser` status and returns an iterable that could output other objects contained on the last partial row (line). See [`relax`](#relax) option.
+It resets the `Parser` status and returns an iterable that could output other objects contained on the last partial row (line).
 
 - Returns: `<Iterable>`
 
@@ -268,18 +268,18 @@ It creates a `Stringifier` instance. This object is useful when a custom optimiz
 
 It consists of only two methods, and all those methods are strictly synchronous.
 
-#### `Stringifier#write(iterable)`
+#### `Stringifier#write(obj)`
 
-It accepts an iterable of objects and returns a serialized buffer up to the last serializable object.
+Push an object to serialize. Returns the serialized text of the passed object, including new line terminators.
 
-- `iterable` `<Iterable>`
-- Returns: `<Buffer>`
+- `obj` `<*>`
+- Returns: `<String>`
 
 #### `Stringifier#end()`
 
-It resets the `Stringifier` status and returns the closing buffer.
+Close the parsing and returns a final string.
 
-- Returns: `<Buffer>`
+- Returns: `<String>`
 
 ```javascript
 import { Stringifier } from '@evologi/fixed-width'
@@ -302,16 +302,13 @@ const stringifier = new Stringifier({
   ]
 })
 
-const buffer = Buffer.concat([
-  stringifier.write([
-    { username: 'alice', age: 24 },
-    { username: 'bob', age: 30 }
-  ]),
-  stringifier.end()
-])
+let text = ''
+text += stringifier.write({ username: 'alice', age: 24 })
+text += stringifier.write({ username: 'bob', age: 30 })
+text += stringifier.end()
 
 // 'alice       024\nbob         030\n'
-console.log(buffer.toString(stringifier.options.encoding))
+console.log(text)
 ```
 
 ## Options
@@ -380,13 +377,29 @@ Default: `Infinity`
 
 The last line to consider while parsing (inclusive). It is a **1-based** integer (one is the first line).
 
-### `relax`
+### `allowLongerLines`
 
 Type: `<Boolean>`
 
+Allow lines to be longer than the declared fields while parsing.
+
+Default: `true`
+
+### `allowShorterLines`
+
+Type: `<Boolean>`
+
+Allow lines to be shorter than the declared fields while parsing.
+
 Default: `false`
 
-If `true`, partial lines are parsed without throwing an error.
+### `skipEmptyLines`
+
+Type: `<Boolean>`
+
+Completely ignore all empty lines. This options does **not** change the behaviour of the `allowShorterLines` option.
+
+Default: `true`
 
 ### `fields`
 
@@ -459,9 +472,27 @@ Field's width. Required.
 
 All errors that can occur during the parsing or serializing phase contain an error code. Error objects also contain enough info (properties) to debug the problem.
 
+It's possible to detect custom fixed-width errors with their constructor:
+
+```javascript
+import { FixedWidthError } from '@evologi/fixed-width'
+
+try {
+  // parse or stringify...
+} catch (err) {
+  if (err instanceof FixedWidthError) {
+    console.log(err.code)
+  } else {
+    console.log('UNKNOWN_ERROR')
+  }
+}
+```
+
 ### `UNEXPECTED_LINE_LENGTH`
 
-This error is raised when a partial line is found. You can suppress this error with the [`relax`](#relax) option.
+This error is raised when a partial line is found.
+
+You can suppress this error with [`allowLongerLines`](#allowLongerLines) or [`allowShorterLines`](#allowShorterLines) options.
 
 ### `EXPECTED_STRING_VALUE`
 

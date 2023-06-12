@@ -1,9 +1,8 @@
 import test from 'ava'
 
-import { parseOptions } from './options.mjs'
+import { isAsyncIterable, isIterable, parseOptions } from './options.mjs'
 import {
   guessEndOfLine,
-  isMatching,
   parse,
   parseField,
   parseFields,
@@ -17,12 +16,19 @@ test('parse field', t => {
     fields: [{ column: 2, width: 3 }]
   })
 
-  const buffer = Buffer.from('abcdefg')
-
   t.deepEqual(
-    parseField(buffer, options.fields[0], options, 1),
+    parseField('abcdefg', options.fields[0], options, 1),
     'bcd'
   )
+})
+
+test('parse uft8', t => {
+  const items = parse('àà\nèè\nìì\nòò\nùù', {
+    fields: [
+      { width: 2 }
+    ]
+  })
+  t.deepEqual(items, [['àà'], ['èè'], ['ìì'], ['òò'], ['ùù']])
 })
 
 test('parse array', t => {
@@ -31,10 +37,8 @@ test('parse array', t => {
     trim: 'right'
   })
 
-  const buffer = Buffer.from(' a  b  c ')
-
   t.deepEqual(
-    parseFields(buffer, options),
+    parseFields(' a  b  c ', options),
     [' a', ' b', ' c']
   )
 })
@@ -58,10 +62,8 @@ test('parse object', t => {
     trim: false
   })
 
-  const buffer = Buffer.from(' a  b  c ')
-
   t.deepEqual(
-    parseFields(buffer, options),
+    parseFields(' a  b  c ', options),
     {
       A: ' a ',
       B: ' b ',
@@ -70,21 +72,27 @@ test('parse object', t => {
   )
 })
 
-test('eol match', t => {
-  const eol = Buffer.from('\r\n')
-  t.false(isMatching(Buffer.from('\n'), eol))
-  t.false(isMatching(Buffer.from('\r'), eol))
-  t.false(isMatching(Buffer.from('\n\r'), eol))
-  t.true(isMatching(Buffer.from('\r\n'), eol))
-  t.true(isMatching(Buffer.from('  \r\n  '), eol, 2))
-  t.false(isMatching(Buffer.from(' '), eol, 2))
-})
-
 test('unexpected line length', t => {
+  const fields = [{ width: 42 }]
   t.throws(
     () => parse(
       'test',
-      [{ width: 42 }]
+      {
+        allowLongerLines: true,
+        allowShorterLines: false,
+        fields
+      }
+    ),
+    { code: 'UNEXPECTED_LINE_LENGTH' }
+  )
+  t.throws(
+    () => parse(
+      'A towel, it says, is about the most massively useful thing an interstellar hitchhiker can have.',
+      {
+        allowLongerLines: false,
+        allowShorterLines: true,
+        fields
+      }
     ),
     { code: 'UNEXPECTED_LINE_LENGTH' }
   )
@@ -92,8 +100,6 @@ test('unexpected line length', t => {
 
 test('parse and cast', t => {
   t.plan(3)
-
-  const buffer = Buffer.from('--0420')
 
   const options = parseOptions({
     fields: [
@@ -117,7 +123,7 @@ test('parse and cast', t => {
   })
 
   t.deepEqual(
-    parseFields(buffer, options),
+    parseFields('--0420', options),
     ['--', 42]
   )
 })
@@ -144,11 +150,12 @@ test('trimString', t => {
 })
 
 test('guessEndOfLine', t => {
-  t.is(guessEndOfLine(Buffer.from('asdasd')), undefined)
-  t.is(guessEndOfLine(Buffer.from('asd\rasd')).toString(), '\r')
-  t.is(guessEndOfLine(Buffer.from('asd\r\nasd')).toString(), '\r\n')
-  t.is(guessEndOfLine(Buffer.from('asd\nasd')).toString(), '\n')
-  t.is(guessEndOfLine(Buffer.from('asd\n\rasd')).toString(), '\n')
+  t.is(guessEndOfLine('asdasd'), undefined)
+  t.is(guessEndOfLine('asd\rasd'), '\r')
+  t.is(guessEndOfLine('asd\r\nasd'), '\r\n')
+  t.is(guessEndOfLine('asd\nasd'), '\n')
+  t.is(guessEndOfLine('asd\n\rasd'), '\n')
+  t.is(guessEndOfLine('asd\r'), undefined) // could be Windows
 })
 
 test('partial width parsing', t => {
@@ -165,4 +172,134 @@ test('partial width parsing', t => {
     ['w', 't'],
     ['s', 'g']
   ])
+})
+
+test('skip empty lines', t => {
+  const fields = [
+    { width: 1 }
+  ]
+
+  t.like(
+    parse('\na\n\nb\nc\n\n\n', {
+      allowShorterLines: true,
+      eol: '\n',
+      fields,
+      skipEmptyLines: false
+    }),
+    [[''], ['a'], [''], ['b'], ['c'], [''], ['']]
+  )
+
+  t.like(
+    parse('\na\n\nb\nc\n\n\n', {
+      allowShorterLines: true,
+      eol: '\n',
+      fields,
+      skipEmptyLines: true
+    }),
+    [['a'], ['b'], ['c']]
+  )
+})
+
+test('in-memory parse', t => {
+  const options = {
+    fields: [
+      {
+        cast: value => parseInt(value, 10),
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  t.like(
+    parse('42', options),
+    [{ value: 42 }]
+  )
+  t.like(
+    parse(Buffer.from('42'), options),
+    [{ value: 42 }]
+  )
+})
+
+test('parse iterable', t => {
+  t.plan(7)
+
+  const options = {
+    fields: [
+      {
+        cast: value => parseInt(value, 10),
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  const input = {
+    [Symbol.iterator] () {
+      t.pass()
+      let done = false
+      return {
+        next () {
+          t.pass()
+          if (done) {
+            return { done: true }
+          } else {
+            done = true
+            return { done: false, value: '42' }
+          }
+        }
+      }
+    }
+  }
+
+  const output = parse(input, options)
+  t.false(Array.isArray(output))
+  t.true(isIterable(output))
+  t.false(isAsyncIterable(output))
+
+  t.like(
+    Array.from(output),
+    [{ value: 42 }]
+  )
+})
+
+test('parse async iterable', async t => {
+  t.plan(7)
+
+  const options = {
+    fields: [
+      {
+        cast: value => parseInt(value, 10),
+        property: 'value',
+        width: 2
+      }
+    ]
+  }
+
+  const input = {
+    [Symbol.asyncIterator] () {
+      t.pass()
+      let done = false
+      return {
+        next () {
+          t.pass()
+          if (done) {
+            return Promise.resolve({ done: true })
+          } else {
+            done = true
+            return Promise.resolve({ done: false, value: '42' })
+          }
+        }
+      }
+    }
+  }
+
+  const output = parse(input, options)
+  t.false(Array.isArray(output))
+  t.false(isIterable(output))
+  t.true(isAsyncIterable(output))
+
+  for await (const data of output) {
+    t.like(data, { value: 42 })
+  }
 })

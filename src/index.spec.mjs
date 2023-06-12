@@ -17,19 +17,19 @@ test('Parser', t => {
 
   t.is(parser.line, 1)
   t.deepEqual(
-    Array.from(parser.write(Buffer.from('helloworld\r'))),
+    Array.from(parser.write('helloworld\r')),
     []
   )
 
   t.is(parser.line, 1)
   t.deepEqual(
-    Array.from(parser.write(Buffer.from('\n'))),
+    Array.from(parser.write('\n')),
     [{ a: 'hello', b: 'world' }]
   )
 
   t.is(parser.line, 2)
   t.deepEqual(
-    Array.from(parser.write(Buffer.from('worldhello\r\n'))),
+    Array.from(parser.write('worldhello\r\n')),
     [{ a: 'world', b: 'hello' }]
   )
 
@@ -44,6 +44,7 @@ test('Parser', t => {
 
 test('Stringifier', t => {
   const stringifier = new Stringifier({
+    eof: true,
     eol: '\r\n',
     fields: [
       { align: 'left', property: 'a', width: 10 },
@@ -51,40 +52,36 @@ test('Stringifier', t => {
       { align: 'left', property: 'c', width: 10 }
     ]
   })
-
   t.is(stringifier.line, 1)
-  t.is(
-    stringifier
-      .write([
-        { a: 'Harry', b: 'Ron', c: 'Hermione' },
-        { a: 'Blossom', b: 'Bubbles', c: 'Buttercup' }
-      ])
-      .toString(),
-    'Harry            RonHermione  \r\nBlossom      BubblesButtercup '
-  )
 
-  t.is(stringifier.line, 3)
   t.is(
-    stringifier
-      .write([])
-      .toString(),
+    stringifier.write(
+      { a: 'Harry', b: 'Ron', c: 'Hermione' }
+    ),
+    'Harry            RonHermione  \r\n'
+  )
+  t.is(stringifier.line, 2)
+
+  t.is(
+    stringifier.write(
+      { a: 'Blossom', b: 'Bubbles', c: 'Buttercup' }
+    ),
+    'Blossom      BubblesButtercup \r\n'
+  )
+  t.is(stringifier.line, 3)
+
+  t.is(
+    stringifier.write(
+      { a: 'Tom', b: null, c: 'Jerry' }
+    ),
+    'Tom                 Jerry     \r\n'
+  )
+  t.is(stringifier.line, 4)
+
+  t.is(
+    stringifier.end(),
     ''
   )
-
-  t.is(stringifier.line, 3)
-  t.is(
-    stringifier
-      .write([{ a: 'Tom', b: null, c: 'Jerry' }])
-      .toString(),
-    '\r\nTom                 Jerry     '
-  )
-
-  t.is(stringifier.line, 4)
-  t.is(
-    stringifier.end().toString(),
-    '\r\n'
-  )
-
   t.is(stringifier.line, 1)
 })
 
