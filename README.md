@@ -472,6 +472,22 @@ Field's width. Required.
 
 All errors that can occur during the parsing or serializing phase contain an error code. Error objects also contain enough info (properties) to debug the problem.
 
+It's possible to detect custom fixed-width errors with their constructor:
+
+```javascript
+import { FixedWidthError } from '@evologi/fixed-width'
+
+try {
+  // parse or stringify...
+} catch (err) {
+  if (err instanceof FixedWidthError) {
+    console.log(err.code)
+  } else {
+    console.log('UNKNOWN_ERROR')
+  }
+}
+```
+
 ### `UNEXPECTED_LINE_LENGTH`
 
 This error is raised when a partial line is found.
