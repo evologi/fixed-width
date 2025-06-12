@@ -116,7 +116,12 @@ export function replaceWith (text, value, index = 0) {
 }
 
 export function stringifyField (obj, field, options, line) {
-  let value = stringifyValue(obj[field.property], options.encoding)
+  let value = obj[field.property];
+  if(field.stringify) {
+    value = field.stringify(value);
+  }
+  value  = stringifyValue(value, options.encoding)
+
   if (typeof value !== 'string') {
     throw new FixedWidthError(
       'EXPECTED_STRING_VALUE',

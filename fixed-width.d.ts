@@ -94,6 +94,12 @@ export interface Field {
     context: { column: number; line: number; width: number }
   ) => any;
   /**
+   * Custom way of writing the value to the file
+   */
+  stringify?: (
+    value: any
+  ) => string;
+  /**
    * Field's column number. This is 1-based. First column is 1.
    */
   column?: number;

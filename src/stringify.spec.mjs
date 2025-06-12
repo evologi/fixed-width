@@ -38,6 +38,31 @@ test('stringify fields', t => {
   t.is(text, '  1.3 42   ')
 })
 
+test('stringify with custom stringifier', t => {
+  const options = parseOptions([
+    {
+      align: 'left',
+      property: 'b',
+      width: 10,
+      stringify: (date) => {
+        // Sample formatting that writes the date in American format (MM/DD/YYYY)
+        const year = (date.getYear() + 1900).toString();
+        const month = date.getMonth().toString().padStart(2, "0");
+        const day = date.getDate().toString().padStart(2, "0");
+        const result = `${month}/${day}/${year}`
+        return result
+      }
+    }
+  ])
+
+  const values = {
+    b: new Date(2020, 3, 15)
+  }
+
+  const text = stringifyFields(values, options)
+  t.is(text, '03/15/2020')
+})
+
 test('expected string value', t => {
   t.throws(
     () => stringify(
