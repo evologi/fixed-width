@@ -116,11 +116,11 @@ export function replaceWith (text, value, index = 0) {
 }
 
 export function stringifyField (obj, field, options, line) {
-  let value = obj[field.property];
-  if(field.stringify) {
-    value = field.stringify(value);
+  let value = obj[field.property]
+  if (field.stringify) {
+    value = field.stringify(value)
   }
-  value  = stringifyValue(value, options.encoding)
+  value = stringifyValue(value, options.encoding)
 
   if (typeof value !== 'string') {
     throw new FixedWidthError(

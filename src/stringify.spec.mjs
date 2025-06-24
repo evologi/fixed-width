@@ -46,9 +46,9 @@ test('stringify with custom stringifier', t => {
       width: 10,
       stringify: (date) => {
         // Sample formatting that writes the date in American format (MM/DD/YYYY)
-        const year = (date.getYear() + 1900).toString();
-        const month = date.getMonth().toString().padStart(2, "0");
-        const day = date.getDate().toString().padStart(2, "0");
+        const year = (date.getYear() + 1900).toString()
+        const month = date.getMonth().toString().padStart(2, '0')
+        const day = date.getDate().toString().padStart(2, '0')
         const result = `${month}/${day}/${year}`
         return result
       }
