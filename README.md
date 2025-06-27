@@ -468,6 +468,12 @@ Type: `<Number>`
 
 Field's width. Required.
 
+#### `field.stringify`
+
+Type: `<Function>`
+
+A function that converts the field into a custom string. Useful for custom formatting, for example, formatting a Date into DD/MM/YYYY format. Only used while stringifying.
+
 ## Errors
 
 All errors that can occur during the parsing or serializing phase contain an error code. Error objects also contain enough info (properties) to debug the problem.

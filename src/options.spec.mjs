@@ -21,6 +21,7 @@ test('defaults', t => {
         column: 1,
         pad: ' ',
         property: 0,
+        stringify: null,
         width: 2
       },
       {
@@ -29,6 +30,7 @@ test('defaults', t => {
         column: 3,
         pad: ' ',
         property: 1,
+        stringify: null,
         width: 2
       }
     ],

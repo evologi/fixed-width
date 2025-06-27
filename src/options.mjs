@@ -111,6 +111,7 @@ function parseField (field, index, defaultColumn, defaultPad, encoding) {
     column,
     pad,
     property: isPropertyKey(field.property) ? field.property : index,
+    stringify: typeof field.stringify === 'function' ? field.stringify : null,
     width: field.width
   }
 }
