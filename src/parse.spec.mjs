@@ -341,3 +341,34 @@ test('issue #5', t => {
   )
   t.is(result, '4500')
 })
+
+test('from and to', t => {
+  const text = 'aabbcc\nddeeff\ngghhii\njjkkll'
+
+  const options = {
+    from: 2,
+    to: 3,
+    fields: [
+      { width: 2 },
+      { width: 2 },
+      { width: 2 }
+    ]
+  }
+
+  t.like(
+    parse(text, options),
+    {
+      length: 2,
+      0: [
+        'dd',
+        'ee',
+        'ff'
+      ],
+      1: [
+        'gg',
+        'hh',
+        'ii'
+      ]
+    }
+  )
+})

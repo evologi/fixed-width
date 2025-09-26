@@ -46,11 +46,15 @@ export class Parser {
   }
 
   * end () {
-    if (this.text.length) {
+    if (
+      this.line >= this.options.from &&
+      this.line <= this.options.to &&
+      this.text.length
+    ) {
       yield parseFields(
         this.text,
         this.options,
-        this.line++
+        this.line
       )
     }
 
@@ -78,13 +82,18 @@ export class Parser {
       this.text = chunks.pop()
 
       for (const chunk of chunks) {
-        if (chunk.length > 0 || !this.options.skipEmptyLines) {
+        if (
+          this.line >= this.options.from &&
+          this.line <= this.options.to &&
+          (chunk.length > 0 || !this.options.skipEmptyLines)
+        ) {
           yield parseFields(
             chunk,
             this.options,
-            this.line++
+            this.line
           )
         }
+        this.line++
       }
     }
   }

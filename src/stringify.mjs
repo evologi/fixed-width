@@ -1,4 +1,4 @@
-import os from 'node:os'
+import { EOL } from 'node:os'
 import { Transform } from 'node:stream'
 
 import { FixedWidthError } from './error.mjs'
@@ -36,7 +36,7 @@ export class Stringifier {
   constructor (options) {
     this.options = parseOptions(options)
     if (!this.options.eol) {
-      this.options = { ...this.options, eol: os.EOL }
+      this.options = { ...this.options, eol: EOL }
     }
     this.line = 1
   }

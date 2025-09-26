@@ -1,4 +1,5 @@
 .*
+!.c8rc.json
 !.github
 !.gitignore
 !.nycrc.json

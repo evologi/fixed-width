@@ -376,7 +376,8 @@ Type: `<Number>`
 
 Default: `1`
 
-The first line to consider while parsing (inclusive). It is a **1-based** integer (one is the first line).
+The first line to consider while parsing (inclusive).
+It is a **1-based** integer (`1` is the first line).
 
 ### `to`
 
@@ -384,7 +385,8 @@ Type: `<Number>`
 
 Default: `Infinity`
 
-The last line to consider while parsing (inclusive). It is a **1-based** integer (one is the first line).
+The last line to consider while parsing (inclusive).
+It is a **1-based** integer (`1` is the first line).
 
 ### `allowLongerLines`
 

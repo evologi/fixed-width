@@ -39,7 +39,8 @@ export interface Options {
    */
   fields: Field[];
   /**
-   * Starting line to parse.
+   * The first line to consider while parsing (inclusive).
+   * It is a **1-based** integer (`1` is the first line).
    *
    * @default 1
    */
@@ -62,7 +63,8 @@ export interface Options {
    */
   skipEmptyLines?: boolean;
   /**
-   * Ending line to parse.
+   * The last line to consider while parsing (inclusive).
+   * It is a **1-based** integer (`1` is the first line).
    *
    * @default Infinity
    */
